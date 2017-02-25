@@ -9,7 +9,7 @@ import urllib
 
 searchLocation = urllib.pathname2url("Geneva, Switzerland")
 numGuests = str(4)
-resultsFile = open('workfile.txt', 'w')
+resultsFile = open('results.txt', 'a+')
 results = []
 
 for i in range(1):
@@ -35,11 +35,15 @@ for i in range(1):
 	print url
 	try:
 		f = urllib2.urlopen(req)
-		results.append(f.read())
-		resultsFile.write(f.read())
+		# results.append(f.read())
+		# results2=(f.read())
+		# resultsFile.write("open")
+		# resultsFile.write(str(results.pop()))
+		resultsFile.write(str(f.read()))
 	except:
 		results.append("failure")
 		resultsFile.write("failure")
 print "DONE"
 resultsFile.write("DONE")
+resultsFile.close()
 
