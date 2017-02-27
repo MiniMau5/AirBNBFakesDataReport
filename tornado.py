@@ -4,14 +4,11 @@ import tornado.web
 import sys
 import re
 
-
-import settings
-import src.scripts.database as derp
-
 try:
     import simplejson as json
 except ImportError:
     import json
+
 
 class MainHandler(tornado.web.RequestHandler):
     @gen.coroutine
@@ -28,15 +25,16 @@ class MainHandler(tornado.web.RequestHandler):
         http.fetch(tornado.httpclient.HTTPRequest(url, 'GET', headers))
 
         # 2) asynchronous calls with generators (parsing, getting descriptions from ids)
-        resultsNum = 1000
+        results_num = 1000
 
-        for i in range(resultsNum/50):
-            response = yield parseSearch()
+        for i in range(results_num/50):
+            response = yield parse_search()
 
         self.write(str(response))
 
+
 @gen.coroutine
-def parseSearch():
+def parse_search():
     gen.Return("hi")
 
 
