@@ -17,20 +17,27 @@ class MainHandler(tornado.web.RequestHandler):
     @gen.coroutine
     def get(self):
         response = "Hello, world"
-        # send_mail_list('test', 'my-first-email')
-        # author = "Kemal Ahmed"
-        # filename = "test4938sdsd2"
-        # filename = filename.replace(" ", "-")
-        # filename = filename.replace("_", "-")
-        # author = author.replace(" ", "-")
-        # author = author.replace("_", "-")
-        # key = author + "_" + filename
-        view = "community"
-        query = ["triangle",""]
-        response = yield derp.db_query("default", "communote", view, tag=query, limit=20, index=0)
-        # response = yield derp.db_insert("beer-sample", key, {"title": filename, "authors": [{"name": author}]})
+
+        # construct url at some point
+        url = "https://api.airbnb.com/v2/search_results?"
+        http = tornado.httpclient.AsyncHTTPClient()
+        headers = {'User-Agent': 'Magic Browser'}
+
+        # 1) asynchronous calls with callbacks (getting lists of results)
+        # tornado.httpclient.HTTPRequest(url, 'GET', headers)
+        http.fetch(tornado.httpclient.HTTPRequest(url, 'GET', headers))
+
+        # 2) asynchronous calls with generators (parsing, getting descriptions from ids)
+        resultsNum = 1000
+
+        for i in range(resultsNum/50):
+            response = yield parseSearch()
 
         self.write(str(response))
+
+@gen.coroutine
+def parseSearch():
+    gen.Return("hi")
 
 
 def make_app():
