@@ -1,16 +1,18 @@
 from tornado import gen
 from tornado import httpclient
+from tornado import escape
 import sys
 import re
 import csv
-import urllib2
-import urllib
+# import urllib2
+# import urllib
 
 try:
     import simplejson as json
 except ImportError:
     import json
-search_location = urllib.pathname2url("Geneva, Switzerland")
+# search_location = urllib.pathname2url("Geneva, Switzerland")
+search_location = escape.url_escape("Geneva, Switzerland", plus=False)
 numGuests = str(4)
 
 #resultsFile = open('results.txt', 'a+')
@@ -41,12 +43,16 @@ def parse_search(i):
     print "first"
     url = gen_url(i, search_location)
     print "second"
+    http.fetch(httpclient.HTTPRequest(url, 'GET', headers), handle_response)
+
+
+def handle_response(response):
     results = []
-    try:
+    if response.error:
+        print "Error:", response.error
+    else:
         # TODO: handle response
-        print "TRY THIS NOW"
-        req= http.fetch(httpclient.HTTPRequest(url, 'GET', headers))
-        print url
+        print response.body
 
         #response = yield link.fetch(request)
         #data = req.body.decode('utf-8')
@@ -63,26 +69,17 @@ def parse_search(i):
         #create counter for tracking in file
         count=0
 
-        print ("finished")
-
-    except:
-        results.append("failure")
-        resultsFile.write("failure")
-        print "Unexpected error:", sys.exc_info()[0]
-    print "DONE"
-
-    # TODO: separate ids
-    ids = results['search_results']
-    for key in ids:
-        count = count + 1
-    try:
-        room_id=key["listing"]
-        print room_id["id"]
-        yield fetch_ids(room_id)
-    # TODO: is the indent correct here??
-    except:
-        print i, "failure"
-
+        # TODO: separate ids
+        ids = results['search_results']
+        for key in ids:
+            count = count + 1
+        try:
+            room_id=key["listing"]
+            print room_id["id"]
+            yield fetch_ids(room_id)
+        # TODO: is the indent correct here??
+        except:
+            print i, "failure"
 
 # 2) asynchronous calls with generators (parsing, getting descriptions from ids)
 @gen.coroutine
@@ -136,9 +133,8 @@ def gen_url(num, location):
     url += "&price_max=210&price_min=40"
     # url += "&sort=1"
     # url += "&user_lat=37.3398634&user_lng=-122.0455164"
+    print url
     return url
-    #url = "https://api.airbnb.com/v2/search_results?client_id=3092nxybyb0otqw18e8nh5nty"
-    #return url
 
 
 try_bb()
