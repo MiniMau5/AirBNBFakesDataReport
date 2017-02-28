@@ -43,7 +43,7 @@ def parse_search(i):
     print "first"
     url = gen_url(i, search_location)
     print "second"
-    http.fetch(httpclient.HTTPRequest(url, 'GET', headers), handle_response)
+    http.fetch(httpclient.HTTPRequest(url, 'GET', headers), handle_response, raise_error =False)
 
 
 def handle_response(response):
