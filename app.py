@@ -44,6 +44,7 @@ def parse_search(i):
     url = gen_url(i, search_location)
     print "second"
     http.fetch(httpclient.HTTPRequest(url, 'GET', headers), handle_response)
+    # TODO: check IOLoop
 
 
 def handle_response(response):
@@ -54,19 +55,17 @@ def handle_response(response):
         # TODO: handle response
         print response.body
 
-        #response = yield link.fetch(request)
-        #data = req.body.decode('utf-8')
+        # data = req.body.decode('utf-8')
 
-        #data = json.loads(data)
+        # data = json.loads(data)
 
-        #fopen = urllib2.urlopen(req)
-        #data = json.load(req.body)
-        #results = json.load(fopen)
+        # data = json.load(req.body)
+        # results = json.load(fopen)
 
         # find number of results in json file
 
-        #print len(req['search_results'])
-        #create counter for tracking in file
+        # print len(req['search_results'])
+        # create counter for tracking in file
         count=0
 
         # TODO: separate ids
@@ -84,7 +83,7 @@ def handle_response(response):
 # 2) asynchronous calls with generators (parsing, getting descriptions from ids)
 @gen.coroutine
 def fetch_ids(room_id):
-    #create counter for tracking in file
+    # create counter for tracking in file
     count=0
     fetch_results = []
     # TODO: construct url
@@ -92,10 +91,9 @@ def fetch_ids(room_id):
     # url = "" + room_id
     try:
         # TODO: handle response
-        req =  http.fetch(httpclient.HTTPRequest(url, 'GET', headers))
-        # TODO: put results into file
-        f = urllib2.urlopen(req)
+        f =  http.fetch(httpclient.HTTPRequest(url, 'GET', headers))
         fetch_results = json.load(f)
+        # TODO: put results into file
     except:
        print count, "failure", url
 
@@ -128,6 +126,7 @@ def gen_url(num, location):
     url += "&ib=false&ib_add_photo_flow=true"
     url += "&location=" + location
     # url += "&location=Lake%20Tahoe%2C%20CA%2C%20US"
+
     url += "&min_bathrooms=1&min_bedrooms=0&min_beds=1"
     url += "&min_num_pic_urls=10"
     url += "&price_max=210&price_min=40"
