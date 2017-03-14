@@ -23,8 +23,8 @@ numGuests = str(4)
 # Open csv file for writing
 # resultsFile = open('results.txt', 'a+')
 f = csv.writer(open('AirbnbData.csv', 'w'))
-f.writerow(["number", "id", "bathrooms","bedrooms","beds","instant_bookable","is_new_listing", "person_capacity", "property_type", "reviews_count", "room_type"])
-
+f.writerow(["number", "id", "bathrooms","bedrooms","beds","instant_bookable","description", "person_capacity", "property_type", "reviews_count", "room_type"])
+overall_count=0
 
 http = httpclient.AsyncHTTPClient()
 headers = {'User-Agent': 'Magic Browser'}
@@ -42,22 +42,22 @@ def queue_requests():
         nxt = tornado.gen.sleep(1)  # 1 request per second
     
         url = gen_url(i, search_location)
-        print "search results being fetched"
+        #print "search results being fetched"
         res = http.fetch(httpclient.HTTPRequest(url, 'GET', headers), handle_response)
         results.append(res)
-        print "fetch sent"
+        #print "fetch sent"
         yield nxt
     yield results
-    loop.add_callback(loop.stop)
+    #loop.add_callback(loop.stop)
 
 @tornado.gen.coroutine
 def handle_response(response):
-    print "response handling commencing..."
+    #print "response handling commencing..."
     if response.error:
         print "Error:", response.error
     elif response.code == 200:
         # TODO: handle response
-        print "response handled"
+        #print "response handled"
 
         results = json.loads(response.body)
         # results = json.load(response.body)
@@ -71,11 +71,13 @@ def handle_response(response):
         # TODO: separate ids
         ids = results['search_results']
         for key in ids:
-            count = count + 1
+            # count = count + 1
             try:
-                room_id=key["listing"]
-                print "fetching room"
+                nxt = tornado.gen.sleep(1)  # 1 request per second
+                room_id = key["listing"]["id"]
+                print "**** FETCHING ROOM  #", room_id
                 yield fetch_ids(room_id)
+                yield nxt
             # TODO: is the indent correct here??
             except:
                 print "failure to fetch room"
@@ -86,38 +88,60 @@ def handle_response(response):
 @tornado.gen.coroutine
 def fetch_ids(room_id):
     # create counter for tracking in file
-    count = 0
+    #count = 0
     fetch_results = []
     # construct url
-    url = "https://api.airbnb.com/v2/listings/" + room_id + "?client_id=3092nxybyb0otqw18e8nh5nty&_format=v1_legacy_for_p3"
+    url = "https://api.airbnb.com/v2/listings/" + str(room_id) + "?client_id=3092nxybyb0otqw18e8nh5nty&_format=v1_legacy_for_p3"
     # url = "" + room_id
+    #print url
     try:
-        response =  http.fetch(httpclient.HTTPRequest(url, 'GET', headers), listing_info)
-        fetch_results = json.load(response)
-        
-        # TODO: put results into file
-        for key in fetch_results['search_results']:
-            count = count + 1
-            try:
-                #y is the dict code for each listing retrieved
-                y = key["listing"]
-                # print count, "dictionary"
-                # write to each row - important info for each listing - especially id - to be used for further investigation
-                # name and city were not used - as they had accents - which caused UnicodeencodeError - ascii codec can't encode...
-                f.writerow( [count, y["id"], y["bathrooms"],y["bedrooms"], y["beds"],  y["instant_bookable"], y["is_new_listing"], y["person_capacity"], y["property_type"], y["reviews_count"], y["room_type"]])
-        
-            except:
-                print key, count, "failure writing listing"
+        #nxt = tornado.gen.sleep(1)  # 1 request per second
+        #print "listing info handling commencing...in fetch ids"
+        response = http.fetch(httpclient.HTTPRequest(url, 'GET', headers), listing_info)
+        fetch_results.append(response)
+        #print "results have been fetched"
+        #yield nxt
     except:
-       print count, "failure", url
-
+       print "failure ", room_id
+    #print "results have been fetched here"
+    yield fetch_results
+    
 # TODO: handle response
 @tornado.gen.coroutine
 def listing_info(response):
-    print "listing info handling commencing..."
+    global overall_count
+    #print "response handling commencing... in listing info"
+    if response.error:
+        print "Error:", response.error
+    elif response.code == 200:
+        # TODO: handle response
+        #print "response handled -in listing info"
+
+        overall_count = overall_count +1
+        #print "listing info"
+        fetch_results = json.loads(response.body)
+        y=fetch_results['listing']
+        # TODO: put results into file
+        
+        #for key in fetch_results['listing']:
+        #count = count + 1
+            #print count
+            #try:
+                # y is the dict code for each listing retrieved
+               #y = key["listing"]
+                #print key['id']
+                # print count, "dictionary"
+                # write to each row - important info for each listing - especially id - to be used for further investigation
+                # name and city were not used - as they had accents - which caused UnicodeencodeError - ascii codec can't encode...
+        print  overall_count, y["id"], y["bathrooms"],y["bedrooms"], y["beds"],  y["instant_bookable"], y["description"], y["person_capacity"], y["property_type"], y["reviews_count"], y["room_type"]
+        
+        f.writerow( [overall_count, y["id"], y["bathrooms"],y["bedrooms"], y["beds"],  y["instant_bookable"], y["description"], y["person_capacity"], y["property_type"], y["reviews_count"], y["room_type"]])
+        
+            #except:
+                #print key, count, "failure writing listing"
 
 def gen_url(num, location):
-    print num
+    print "****   ", num
     # construct URL
 
     url = "https://api.airbnb.com/v2/search_results?"
@@ -137,7 +161,7 @@ def gen_url(num, location):
     url += "&price_max=210&price_min=40"
     # url += "&sort=1"
     # url += "&user_lat=37.3398634&user_lng=-122.0455164"
-    print "url generated"
+    #print "url generated"
     return url
 
 loop.add_callback(queue_requests)
