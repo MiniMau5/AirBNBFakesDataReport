@@ -8,10 +8,22 @@ from math import ceil
 import sys
 import re
 import csv
-# import urllib2
-# import urllib
+import datetime
+
+import logging
+# from pprint import pformat
+# from pprint_data import data
+
+logging.basicConfig(filename='logs/log_' + datetime.datetime.utcnow().isoformat() + '.txt', level=logging.DEBUG,
+                    format='%(levelname)-8s %(message)s',
+                    )
+
+logging.debug('Logging pformatted data')
+# logging.debug(pformat(data))
 
 import json
+
+import scanner
 
 # Constants
 
@@ -42,29 +54,30 @@ def queue_requests():
         nxt = tornado.gen.sleep(1)  # 1 request per second
     
         url = gen_url(i, search_location)
-        #print "search results being fetched"
+        # logging.debug("search results being fetched")
         res = http.fetch(httpclient.HTTPRequest(url, 'GET', headers), handle_response)
         results.append(res)
-        #print "fetch sent"
+        # logging.debug("fetch sent")
         yield nxt
     yield results
     #loop.add_callback(loop.stop)
 
 @tornado.gen.coroutine
 def handle_response(response):
-    #print "response handling commencing..."
+    # logging.debug("response handling commencing...")
     if response.error:
-        print "Error:", response.error
+        logging.debug("Error:")
+        logging.debug(response.error)
     elif response.code == 200:
         # TODO: handle response
-        #print "response handled"
+        # logging.debug("response handled")
 
         results = json.loads(response.body)
         # results = json.load(response.body)
 
         # find number of results in json file
 
-        # print len(req['search_results'])
+        #  logging.debug(len(req['search_results']))
         # create counter for tracking in file
         count = 0
 
@@ -75,73 +88,84 @@ def handle_response(response):
             try:
                 nxt = tornado.gen.sleep(1)  # 1 request per second
                 room_id = key["listing"]["id"]
-                print "**** FETCHING ROOM  #", room_id
+                logging.debug("**** FETCHING ROOM  #")
+                logging.debug(room_id)
                 yield fetch_ids(room_id)
                 yield nxt
             # TODO: is the indent correct here??
             except:
-                print "failure to fetch room"
+                logging.debug("failure to fetch room")
     else:
-        print "failure: ", response.code
+        logging.debug("failure: ")
+        logging.debug(response.code)
 
 # 2) asynchronous calls with generators (parsing, getting descriptions from ids)
 @tornado.gen.coroutine
 def fetch_ids(room_id):
     # create counter for tracking in file
-    #count = 0
+    # count = 0
     fetch_results = []
     # construct url
     url = "https://api.airbnb.com/v2/listings/" + str(room_id) + "?client_id=3092nxybyb0otqw18e8nh5nty&_format=v1_legacy_for_p3"
     # url = "" + room_id
-    #print url
+    # logging.debug(url)
     try:
-        #nxt = tornado.gen.sleep(1)  # 1 request per second
-        #print "listing info handling commencing...in fetch ids"
+        # nxt = tornado.gen.sleep(1)  # 1 request per second
+        # logging.debug("listing info handling commencing...in fetch ids")
         response = http.fetch(httpclient.HTTPRequest(url, 'GET', headers), listing_info)
         fetch_results.append(response)
-        #print "results have been fetched"
-        #yield nxt
+        # logging.debug("results have been fetched")
+        # yield nxt
     except:
-       print "failure ", room_id
-    #print "results have been fetched here"
+       logging.debug("failure ")
+       logging.debug(room_id)
+    # logging.debug("results have been fetched here")
     yield fetch_results
     
 # TODO: handle response
 @tornado.gen.coroutine
 def listing_info(response):
     global overall_count
-    #print "response handling commencing... in listing info"
+    # logging.debug("response handling commencing... in listing info")
     if response.error:
-        print "Error:", response.error
+        logging.debug("Error:")
+        logging.debug(response.error)
     elif response.code == 200:
         # TODO: handle response
-        #print "response handled -in listing info"
+        # logging.debug("response handled -in listing info")
 
         overall_count = overall_count +1
-        #print "listing info"
+        # logging.debug("listing info")
         fetch_results = json.loads(response.body)
-        y=fetch_results['listing']
+        y = fetch_results['listing']
         # TODO: put results into file
         
-        #for key in fetch_results['listing']:
-        #count = count + 1
-            #print count
-            #try:
+        # for key in fetch_results['listing']:
+        # count = count + 1
+            # logging.debug(count)
+            # try:
                 # y is the dict code for each listing retrieved
-               #y = key["listing"]
-                #print key['id']
-                # print count, "dictionary"
+                # y = key["listing"]
+                # logging.debug(key['id'])
+                # logging.debug(count)
+                # logging.debug("dictionary")
                 # write to each row - important info for each listing - especially id - to be used for further investigation
                 # name and city were not used - as they had accents - which caused UnicodeencodeError - ascii codec can't encode...
-        print  overall_count, y["id"], y["bathrooms"],y["bedrooms"], y["beds"],  y["instant_bookable"], y["description"], y["person_capacity"], y["property_type"], y["reviews_count"], y["room_type"]
-        
+        logging.debug(overall_count)
+        logging.debug(y)
+        # print y["id"], y["bathrooms"],y["bedrooms"], y["beds"],  y["instant_bookable"], y["description"], y["person_capacity"], y["property_type"], y["reviews_count"], y["room_type"]
+        sketchy = scanner.isSketchy(y["description"])
+        # TODO: csv headers
         f.writerow( [overall_count, y["id"], y["bathrooms"],y["bedrooms"], y["beds"],  y["instant_bookable"], y["description"], y["person_capacity"], y["property_type"], y["reviews_count"], y["room_type"]])
         
-            #except:
-                #print key, count, "failure writing listing"
+            # except:
+                # logging.debug(key)
+                # logging.debug(count)
+                # logging.debug("failure writing listing")
 
 def gen_url(num, location):
-    print "****   ", num
+    logging.debug("****   ")
+    logging.debug(num)
     # construct URL
 
     url = "https://api.airbnb.com/v2/search_results?"
@@ -161,7 +185,7 @@ def gen_url(num, location):
     url += "&price_max=210&price_min=40"
     # url += "&sort=1"
     # url += "&user_lat=37.3398634&user_lng=-122.0455164"
-    #print "url generated"
+    # logging.debug("url generated")
     return url
 
 loop.add_callback(queue_requests)

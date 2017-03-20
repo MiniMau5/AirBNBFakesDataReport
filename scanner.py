@@ -26,8 +26,8 @@ def isSketchy(desc):
     return False
 
 # description = ""
-description = "Contact me mim-at-bnbvacation_com"
-print isSketchy(description)
+# description = "Contact me mim-at-bnbvacation_com"
+# logging.debug(isSketchy(description))
 
 # attributes
 ###

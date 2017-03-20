@@ -44,6 +44,8 @@ nosetests.xml
 coverage.xml
 *,cover
 .hypothesis/
+logs/
+AirbnbData.csv
 
 # Translations
 *.mo
