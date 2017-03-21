@@ -35,7 +35,7 @@ numGuests = str(4)
 # Open csv file for writing
 # resultsFile = open('results.txt', 'a+')
 f = csv.writer(open('AirbnbData.csv', 'w'))
-f.writerow(["number", "id", "bathrooms","bedrooms","beds","instant_bookable","description", "person_capacity", "property_type", "reviews_count", "room_type"])
+f.writerow(["number", "id","Sketchy?" "bathrooms","bedrooms","beds","instant_bookable","description", "person_capacity", "property_type", "reviews_count", "room_type"])
 overall_count=0
 
 http = httpclient.AsyncHTTPClient()
@@ -54,30 +54,30 @@ def queue_requests():
         nxt = tornado.gen.sleep(1)  # 1 request per second
     
         url = gen_url(i, search_location)
-        # logging.debug("search results being fetched")
+        logging.debug("search results being fetched")
         res = http.fetch(httpclient.HTTPRequest(url, 'GET', headers), handle_response)
         results.append(res)
-        # logging.debug("fetch sent")
+        logging.debug("fetch sent")
         yield nxt
     yield results
-    #loop.add_callback(loop.stop)
+    # loop.add_callback(loop.stop)
 
 @tornado.gen.coroutine
 def handle_response(response):
-    # logging.debug("response handling commencing...")
+    logging.debug("response handling commencing...")
     if response.error:
         logging.debug("Error:")
-        logging.debug(response.error)
+        # logging.debug(response.error)
     elif response.code == 200:
         # TODO: handle response
-        # logging.debug("response handled")
+        logging.debug("response handled")
 
         results = json.loads(response.body)
         # results = json.load(response.body)
 
         # find number of results in json file
 
-        #  logging.debug(len(req['search_results']))
+        logging.debug(len(results['search_results']))
         # create counter for tracking in file
         count = 0
 
@@ -108,60 +108,48 @@ def fetch_ids(room_id):
     # construct url
     url = "https://api.airbnb.com/v2/listings/" + str(room_id) + "?client_id=3092nxybyb0otqw18e8nh5nty&_format=v1_legacy_for_p3"
     # url = "" + room_id
-    # logging.debug(url)
+    logging.debug(url)
     try:
         # nxt = tornado.gen.sleep(1)  # 1 request per second
-        # logging.debug("listing info handling commencing...in fetch ids")
+        logging.debug("listing info handling commencing...in fetch ids")
         response = http.fetch(httpclient.HTTPRequest(url, 'GET', headers), listing_info)
         fetch_results.append(response)
-        # logging.debug("results have been fetched")
+        logging.debug("results have been fetched")
         # yield nxt
     except:
        logging.debug("failure ")
        logging.debug(room_id)
-    # logging.debug("results have been fetched here")
+    logging.debug("results have been fetched here")
     yield fetch_results
     
 # TODO: handle response
 @tornado.gen.coroutine
 def listing_info(response):
     global overall_count
-    # logging.debug("response handling commencing... in listing info")
+    logging.debug("response handling commencing... in listing info")
     if response.error:
         logging.debug("Error:")
         logging.debug(response.error)
     elif response.code == 200:
         # TODO: handle response
-        # logging.debug("response handled -in listing info")
+        logging.debug("response handled -in listing info")
 
         overall_count = overall_count +1
-        # logging.debug("listing info")
-        fetch_results = json.loads(response.body)
-        y = fetch_results['listing']
-        # TODO: put results into file
-        
-        # for key in fetch_results['listing']:
-        # count = count + 1
-            # logging.debug(count)
-            # try:
-                # y is the dict code for each listing retrieved
-                # y = key["listing"]
-                # logging.debug(key['id'])
-                # logging.debug(count)
-                # logging.debug("dictionary")
-                # write to each row - important info for each listing - especially id - to be used for further investigation
-                # name and city were not used - as they had accents - which caused UnicodeencodeError - ascii codec can't encode...
-        logging.debug(overall_count)
-        logging.debug(y)
-        # print y["id"], y["bathrooms"],y["bedrooms"], y["beds"],  y["instant_bookable"], y["description"], y["person_capacity"], y["property_type"], y["reviews_count"], y["room_type"]
-        sketchy = scanner.isSketchy(y["description"])
-        # TODO: csv headers
-        f.writerow( [overall_count, y["id"], y["bathrooms"],y["bedrooms"], y["beds"],  y["instant_bookable"], y["description"], y["person_capacity"], y["property_type"], y["reviews_count"], y["room_type"]])
-        
-            # except:
-                # logging.debug(key)
-                # logging.debug(count)
-                # logging.debug("failure writing listing")
+        logging.debug("listing info")
+        try:
+            fetch_results = json.loads(response.body)
+            y = fetch_results['listing']
+            # TODO: put results into file
+            logging.debug('count:')
+            logging.debug(overall_count)
+            # logging.debug(y)
+            # print y["id"], y["bathrooms"],y["bedrooms"], y["beds"],  y["instant_bookable"], y["description"], y["person_capacity"], y["property_type"], y["reviews_count"], y["room_type"]
+            sketchy = scanner.isSketchy(y["description"])
+            logging.debug(sketchy)
+            # TODO: csv headers
+            f.writerow( [overall_count, y["id"], sketchy, y["bathrooms"],y["bedrooms"], y["beds"],  y["instant_bookable"], y["description"], y["person_capacity"], y["property_type"], y["reviews_count"], y["room_type"]])
+        except:
+            logging.debug("Error: Listing info not found")
 
 def gen_url(num, location):
     logging.debug("****   ")

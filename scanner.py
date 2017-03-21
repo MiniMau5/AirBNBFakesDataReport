@@ -7,9 +7,11 @@ import re
 def findMail(desc):
     # defined model by hand
     # there are plans to develop that using ML in the future
-    regex = '([\w\.\_])+(([\s\_\-]at[\s\_\-])|([\s\_\-])?@([\s\_\-])?)(\w)+(([\s\_\-])|([\s\_\-]dot[\s\_\-])|([\s\_\-])?\.([\s\_\-])?)(\w)+'
+    # regex = '([\w\.\_])+(([\s\_\-]at[\s\_\-])|([\s\_\-])?@([\s\_\-])?)(\w)+(([\s\_\-])|([\s\_\-]dot[\s\_\-])|([\s\_\-])?\.([\s\_\-])?)(\w)+'
+    regex = '([\w\.\_])+(((\sat\s)|(\(at\))|(\_at\_)|(\-at\-))|(\s@\s)|(\(@\))|(\_@\_)|(\-@\-))(\w)+((\sdot\s)|(\_dot\_)|(\-dot\-)|(\s\.\s)|(\_\.\_)|(\-\.\-)|\.)(\w)+|((\(at\))|(@))'
     result = re.search(regex, desc)
     if result:
+        print result.group(0)
         return result.group(0)
     return False
 
@@ -21,13 +23,16 @@ def findPhone(desc):
     return False
 
 def isSketchy(desc):
-    if findMail(desc) or findPhone(desc):
-        return True
-    return False
+    # if findMail(desc):
+    return findMail(desc)
+    # if findPhone(desc):
+        # return findPhone(desc)
+    # return False
 
 # description = ""
-# description = "Contact me mim-at-bnbvacation_com"
-# logging.debug(isSketchy(description))
+# description = "ams @holiday-trip.co uk"
+# print isSketchy(description)
+
 
 # attributes
 ###
