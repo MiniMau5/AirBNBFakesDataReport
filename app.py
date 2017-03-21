@@ -48,7 +48,7 @@ def queue_requests():
     
     # 1) asynchronous calls with callbacks (getting lists of results)
     # TODO: change this to 1000 when you're ready
-    results_num = 50
+    results_num = 1000
     results = []
     for i in range(int(ceil(results_num/50.0))):
         nxt = tornado.gen.sleep(1)  # 1 request per second
@@ -146,8 +146,9 @@ def listing_info(response):
             # print y["id"], y["bathrooms"],y["bedrooms"], y["beds"],  y["instant_bookable"], y["description"], y["person_capacity"], y["property_type"], y["reviews_count"], y["room_type"]
             sketchy = scanner.isSketchy(y["description"])
             logging.debug(sketchy)
-            # TODO: csv headers
-            f.writerow( [overall_count, y["id"], sketchy, y["bathrooms"],y["bedrooms"], y["beds"],  y["instant_bookable"], y["description"], y["person_capacity"], y["property_type"], y["reviews_count"], y["room_type"]])
+            # descriptions sometimes contain newline
+            f.writerow( [overall_count, y["id"], sketchy, y["bathrooms"],y["bedrooms"], y["beds"],  y["instant_bookable"], 'y["description"]', y["person_capacity"], y["property_type"], y["reviews_count"], y["room_type"]])
+            logging.debug("Listing successfully stored")
         except:
             logging.debug("Error: Listing info not found")
 
