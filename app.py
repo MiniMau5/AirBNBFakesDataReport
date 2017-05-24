@@ -28,15 +28,15 @@ import scanner
 # Constants
 
 # search_location = urllib.pathname2url("Geneva, Switzerland")
-search_location = escape.url_escape("Geneva, Switzerland", plus=False)
-numGuests = str(4)
+search_location = escape.url_escape("Amsterdam, Netherlands", plus=False)
+numGuests = str(8)
 
 
 # Open csv file for writing
 # resultsFile = open('results.txt', 'a+')
 f = csv.writer(open('AirbnbData.csv', 'w'))
-f.writerow(["number", "id","Sketchy?" "bathrooms","bedrooms","beds","instant_bookable","description", "person_capacity", "property_type", "reviews_count", "room_type"])
-overall_count=0
+f.writerow(["number", "id","Sketchy", "bathrooms","bedrooms","beds","instant_bookable","description", "person_capacity", "property_type", "reviews_count", "room_type"])
+overall_count = 0
 
 http = httpclient.AsyncHTTPClient()
 headers = {'User-Agent': 'Magic Browser'}
@@ -86,14 +86,15 @@ def handle_response(response):
         for key in ids:
             # count = count + 1
             try:
-                nxt = tornado.gen.sleep(1)  # 1 request per second
+                # nxt = tornado.gen.sleep(1)  # 1 request per second
                 room_id = key["listing"]["id"]
                 logging.debug("**** FETCHING ROOM  #")
                 logging.debug(room_id)
                 yield fetch_ids(room_id)
-                yield nxt
+                # yield nxt
             # TODO: is the indent correct here??
             except:
+                logging.debug(sys.exc_info()[0])
                 logging.debug("failure to fetch room")
     else:
         logging.debug("failure: ")
@@ -117,8 +118,9 @@ def fetch_ids(room_id):
         logging.debug("results have been fetched")
         # yield nxt
     except:
-       logging.debug("failure ")
-       logging.debug(room_id)
+        logging.debug(sys.exc_info()[0])
+        logging.debug("failure ")
+        logging.debug(room_id)
     logging.debug("results have been fetched here")
     yield fetch_results
     
@@ -136,6 +138,7 @@ def listing_info(response):
 
         overall_count = overall_count +1
         logging.debug("listing info")
+        print overall_count
         try:
             fetch_results = json.loads(response.body)
             y = fetch_results['listing']
@@ -145,11 +148,10 @@ def listing_info(response):
             # logging.debug(y)
             # print y["id"], y["bathrooms"],y["bedrooms"], y["beds"],  y["instant_bookable"], y["description"], y["person_capacity"], y["property_type"], y["reviews_count"], y["room_type"]
             sketchy = scanner.isSketchy(y["description"])
-            logging.debug(sketchy)
-            # descriptions sometimes contain newline
-            f.writerow( [overall_count, y["id"], sketchy, y["bathrooms"],y["bedrooms"], y["beds"],  y["instant_bookable"], 'y["description"]', y["person_capacity"], y["property_type"], y["reviews_count"], y["room_type"]])
-            logging.debug("Listing successfully stored")
+            # TODO: csv headers
+            f.writerow( [overall_count, y["id"], sketchy, y["bathrooms"],y["bedrooms"], y["beds"],  y["instant_bookable"], y["description"].encode('utf-8'), y["person_capacity"], y["property_type"], y["reviews_count"], y["room_type"]])
         except:
+            logging.debug(sys.exc_info()[0])
             logging.debug("Error: Listing info not found")
 
 def gen_url(num, location):

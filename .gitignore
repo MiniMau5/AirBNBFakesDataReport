@@ -81,6 +81,7 @@ celerybeat-schedule
 
 # IDE
 .idea
+.~c9_*
 
 # virtualenv
 venv/

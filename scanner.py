@@ -8,7 +8,7 @@ def findMail(desc):
     # defined model by hand
     # there are plans to develop that using ML in the future
     # regex = '([\w\.\_])+(([\s\_\-]at[\s\_\-])|([\s\_\-])?@([\s\_\-])?)(\w)+(([\s\_\-])|([\s\_\-]dot[\s\_\-])|([\s\_\-])?\.([\s\_\-])?)(\w)+'
-    regex = '([\w\.\_])+(((\sat\s)|(\(at\))|(\_at\_)|(\-at\-))|(\s@\s)|(\(@\))|(\_@\_)|(\-@\-))(\w)+((\sdot\s)|(\_dot\_)|(\-dot\-)|(\s\.\s)|(\_\.\_)|(\-\.\-)|\.)(\w)+|((\(at\))|(@))'
+    regex = '(([\w\.\_])+(([\s\_\-\(]at[\s\_\-\)])|([\s\_\-])?@([\s\_\-])?)(\w)+(([\s\_\-]dot[\s\_\-])|([\s\_\-])?\.([\s\_\-])?)(\w)+|(([\(]at[\)])|([\s\_\-\(])?@([\s\_\-\)])?))'
     result = re.search(regex, desc)
     if result:
         print result.group(0)
