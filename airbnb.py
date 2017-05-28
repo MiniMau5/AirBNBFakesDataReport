@@ -12,7 +12,7 @@ import scanner
 
 search_location = urllib.pathname2url("Geneva, Switzerland")
 num_guests = str(4)
-results_num = 60
+results_num = 1000
 
 # constants
 
